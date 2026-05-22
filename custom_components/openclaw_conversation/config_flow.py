@@ -13,15 +13,19 @@ from homeassistant.const import CONF_NAME
 from .const import (
     CONF_API_KEY,
     CONF_BASE_URL,
+    CONF_CONTINUE_CONVERSATION,
     CONF_MODEL,
     CONF_STRIP_EMOJI,
     CONF_SYSTEM_PROMPT,
     CONF_TIMEOUT,
+    CONF_VERIFY_SSL,
     DEFAULT_BASE_URL,
+    DEFAULT_CONTINUE_CONVERSATION,
     DEFAULT_MODEL,
     DEFAULT_STRIP_EMOJI,
     DEFAULT_SYSTEM_PROMPT,
     DEFAULT_TIMEOUT,
+    DEFAULT_VERIFY_SSL,
     DOMAIN,
 )
 
@@ -93,6 +97,7 @@ class OpenClawConversationConfigFlow(
                         json=payload,
                         headers=headers,
                         timeout=aiohttp.ClientTimeout(total=30),
+                        verify_ssl=False
                     ) as resp:
                         body = ""
                         if resp.status != 200:
@@ -167,6 +172,9 @@ class OpenClawConversationConfigFlow(
                         CONF_SYSTEM_PROMPT: user_input.get(
                             CONF_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT
                         ),
+                        CONF_CONTINUE_CONVERSATION: user_input.get(
+                            CONF_CONTINUE_CONVERSATION, DEFAULT_CONTINUE_CONVERSATION
+                        ),
                     },
                 )
 
@@ -190,6 +198,9 @@ class OpenClawConversationConfigFlow(
                     vol.Optional(
                         CONF_SYSTEM_PROMPT, default=DEFAULT_SYSTEM_PROMPT
                     ): str,
+                    vol.Optional(
+                        CONF_CONTINUE_CONVERSATION, default=DEFAULT_CONTINUE_CONVERSATION
+                    ): bool,
                 }
             ),
             errors=errors,
@@ -243,6 +254,18 @@ class OpenClawOptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_STRIP_EMOJI,
                         default=self.config_entry.options.get(
                             CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_VERIFY_SSL,
+                        default=self.config_entry.options.get(
+                            CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_CONTINUE_CONVERSATION,
+                        default=self.config_entry.options.get(
+                            CONF_CONTINUE_CONVERSATION, DEFAULT_CONTINUE_CONVERSATION
                         ),
                     ): bool,
                 }

@@ -10,11 +10,13 @@
           "api_key": "API Token",
           "model": "Model",
           "timeout": "Timeout (seconds, 0 = no limit)",
-          "system_prompt": "System prompt"
+          "system_prompt": "System prompt",
+          "continue_conversation": "Continuous conversation"
         },
         "data_description": {
           "system_prompt": "Instructions sent before each conversation (e.g. keep responses short for voice)",
-          "timeout": "Set to 0 to disable the response timeout (recommended for long-running requests)"
+          "timeout": "Set to 0 to disable the response timeout (recommended for long-running requests)",
+          "continue_conversation": "Keep the microphone open for follow-up questions after a response"
         }
       }
     },
@@ -39,10 +41,12 @@
           "model": "Model",
           "timeout": "Timeout (seconds, 0 = no limit)",
           "system_prompt": "System prompt",
-          "strip_emoji": "Strip emojis from responses"
+          "strip_emoji": "Strip emojis from responses",
+          "continue_conversation": "Continuous conversation"
         },
         "data_description": {
-          "timeout": "Set to 0 to disable the response timeout (recommended for long-running requests)"
+          "timeout": "Set to 0 to disable the response timeout (recommended for long-running requests)",
+          "continue_conversation": "Keep the microphone open for follow-up questions after a response"
         }
       }
     }

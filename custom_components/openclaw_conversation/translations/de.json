@@ -1,0 +1,54 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbindung zu OpenClaw",
+        "description": "Geben Sie Ihre OpenClaw Gateway URL und das API-Token ein.",
+        "data": {
+          "name": "Name",
+          "base_url": "OpenClaw Gateway URL",
+          "api_key": "API-Token",
+          "model": "Modell",
+          "timeout": "Timeout (Sekunden, 0 = kein Limit)",
+          "system_prompt": "System-Prompt",
+          "continue_conversation": "Fortlaufende Konversation"
+        },
+        "data_description": {
+          "system_prompt": "Anweisungen, die vor jeder Konversation gesendet werden (z. B. Antworten für Sprachausgabe kurz halten)",
+          "timeout": "Auf 0 setzen, um das Antwort-Timeout zu deaktivieren (empfohlen für zeitintensive Anfragen)",
+          "continue_conversation": "Das Mikrofon für Folgefragen nach einer Antwort offen halten"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum OpenClaw Gateway nicht möglich. Überprüfen Sie die URL.",
+      "cannot_reach": "Gateway nicht erreichbar. Überprüfen Sie, ob Home Assistant den Gateway-Host erreichen kann (Netzwerk, Firewall, Docker-Bridge, DNS) und ob der Port offen ist.",
+      "timeout": "Das Gateway hat während der Validierung zu lange zum Antworten gebraucht. Überprüfen Sie die Gateway-Auslastung oder versuchen Sie es erneut.",
+      "invalid_auth": "Ungültiges API-Token.",
+      "forbidden": "Zugriff vom Gateway verweigert (403). Überprüfen Sie die Token-Berechtigungen oder die Authentifizierungsrichtlinie des Gateways.",
+      "endpoint_not_found": "Endpunkt /v1/chat/completions nicht gefunden (404). Überprüfen Sie die Basis-URL – es sollte das Gateway-Root-Verzeichnis sein (z. B. http://host:18789), ohne /v1.",
+      "endpoint_disabled": "Der Chat Completions Endpunkt ist auf dem Gateway nicht aktiviert.",
+      "server_error": "Das Gateway hat einen Serverfehler (5xx) zurückgegeben. Überprüfen Sie die Gateway-Logs.",
+      "bad_request": "Das Gateway hat die Anfrage abgelehnt (400). Überprüfen Sie, ob Modellname und Payload gültig sind – siehe Home Assistant Logs für die Antwort des Gateways.",
+      "model_not_available": "Das konfigurierte Modell ist auf diesem OpenClaw Gateway nicht verfügbar. Versuchen Sie ein Modell, das auf Ihrem Gateway existiert (z. B. 'openclaw:main')."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "OpenClaw Konversations-Optionen",
+        "data": {
+          "model": "Modell",
+          "timeout": "Timeout (Sekunden, 0 = kein Limit)",
+          "system_prompt": "System-Prompt",
+          "strip_emoji": "Emojis aus Antworten entfernen",
+          "continue_conversation": "Fortlaufende Konversation"
+        },
+        "data_description": {
+          "timeout": "Auf 0 setzen, um das Antwort-Timeout zu deaktivieren (empfohlen für zeitintensive Anfragen)",
+          "continue_conversation": "Das Mikrofon für Folgefragen nach einer Antwort offen halten"
+        }
+      }
+    }
+  }
+}

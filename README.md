@@ -171,8 +171,7 @@ OpenClaw backends that understand these fields can use them for routing or sessi
 ## Known limitations
 
 - **Response latency**: Full pipeline (STT > LLM > TTS) takes a few seconds. Local Whisper on low-powered devices adds delay.
-- **No continuous conversation**: Wake word needed after each response (HA pipeline limitation).
-- **No audio streaming**: Responses are fully generated before being spoken.
+- **Audio streaming**: Responses are fully generated before being spoken.
 
 ## Support the project
 

@@ -21,14 +21,18 @@ from homeassistant.util import ulid
 from .const import (
     CONF_API_KEY,
     CONF_BASE_URL,
+    CONF_CONTINUE_CONVERSATION,
     CONF_MODEL,
     CONF_STRIP_EMOJI,
     CONF_SYSTEM_PROMPT,
     CONF_TIMEOUT,
+    CONF_VERIFY_SSL,
+    DEFAULT_CONTINUE_CONVERSATION,
     DEFAULT_MODEL,
     DEFAULT_STRIP_EMOJI,
     DEFAULT_SYSTEM_PROMPT,
     DEFAULT_TIMEOUT,
+    DEFAULT_VERIFY_SSL,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -53,7 +57,11 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
         self._system_prompt = entry.options.get(
             CONF_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT
         )
-        self._strip_emoji = entry.options.get(CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI)
+        self._strip_emoji = config.get(CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI)
+        self._verify_ssl = config.get(CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL)
+        self._continue_conversation = config.get(
+            CONF_CONTINUE_CONVERSATION, DEFAULT_CONTINUE_CONVERSATION
+        )
 
     @property
     def attribution(self) -> dict[str, str]:
@@ -71,10 +79,11 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
         """Process a sentence."""
         conversation_id = user_input.conversation_id or ulid.ulid_now()
         principal = self._resolve_principal(user_input)
+        continue_conversation = self._continue_conversation
 
         try:
             start = time.monotonic()
-            response_text = await self._call_openclaw(
+            response_text, continue_conversation = await self._call_openclaw(
                 user_input.text, conversation_id, principal
             )
             elapsed = time.monotonic() - start
@@ -86,15 +95,19 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
         except asyncio.TimeoutError:
             _LOGGER.error("OpenClaw request timed out after %ds", self._timeout)
             response_text = "OpenClaw a mis trop de temps à répondre."
+            continue_conversation = False
         except aiohttp.ClientError as err:
             _LOGGER.error("Network error calling OpenClaw: %s", err)
             response_text = "Erreur réseau avec OpenClaw."
+            continue_conversation = False
         except asyncio.CancelledError:
             _LOGGER.warning("OpenClaw request was cancelled by Home Assistant")
             response_text = "Requête annulée."
+            continue_conversation = False
         except Exception as err:
             _LOGGER.error("Error calling OpenClaw: %s: %s", type(err).__name__, err)
             response_text = "Erreur de communication avec OpenClaw."
+            continue_conversation = False
 
         if self._strip_emoji:
             response_text = _EMOJI_PATTERN.sub("", response_text)
@@ -105,6 +118,7 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
         return conversation.ConversationResult(
             response=response,
             conversation_id=conversation_id,
+            continue_conversation=continue_conversation,
         )
 
     def _resolve_principal(
@@ -147,7 +161,7 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
 
     async def _call_openclaw(
         self, text: str, conversation_id: str, principal: dict[str, str]
-    ) -> str:
+    ) -> tuple[str, bool]:
         """Call OpenClaw chat completions API with streaming."""
         headers = {
             "Authorization": f"Bearer {self._api_key}",
@@ -178,6 +192,7 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
                 f"{self._base_url}/v1/chat/completions",
                 json=payload,
                 headers=headers,
+                verify_ssl=self._verify_ssl
             ) as resp:
                 if resp.status != 200:
                     body = await resp.text()
@@ -190,6 +205,7 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
                 content = ""
                 stream_error: str | None = None
                 saw_done = False
+                continue_conversation = self._continue_conversation
                 for line in raw.splitlines():
                     line = line.strip()
                     if not line or not line.startswith("data: "):
@@ -202,6 +218,10 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
                         chunk = json_mod.loads(data_str)
                     except json_mod.JSONDecodeError:
                         continue
+                    
+                    if "continue_conversation" in chunk:
+                        continue_conversation = bool(chunk["continue_conversation"])
+
                     if isinstance(chunk, dict) and "error" in chunk:
                         err = chunk["error"]
                         if isinstance(err, dict):
@@ -224,6 +244,8 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
                 if not content and raw:
                     try:
                         data = json_mod.loads(raw)
+                        if "continue_conversation" in data:
+                            continue_conversation = bool(data["continue_conversation"])
                         if isinstance(data, dict) and "error" in data:
                             err = data["error"]
                             if isinstance(err, dict):
@@ -260,4 +282,4 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
                         f"No response from OpenClaw. Raw: {raw[:500]}"
                     )
 
-                return content
+                return content, continue_conversation
