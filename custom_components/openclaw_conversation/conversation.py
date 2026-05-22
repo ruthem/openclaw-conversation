@@ -218,7 +218,7 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
                         chunk = json_mod.loads(data_str)
                     except json_mod.JSONDecodeError:
                         continue
-                    
+
                     if "continue_conversation" in chunk:
                         continue_conversation = bool(chunk["continue_conversation"])
 
