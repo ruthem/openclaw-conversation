@@ -15,6 +15,7 @@ from .const import (
     CONF_BASE_URL,
     CONF_CONTINUE_CONVERSATION,
     CONF_MODEL,
+    CONF_SESSION_KEY,
     CONF_STRIP_EMOJI,
     CONF_SYSTEM_PROMPT,
     CONF_TIMEOUT,
@@ -22,6 +23,7 @@ from .const import (
     DEFAULT_BASE_URL,
     DEFAULT_CONTINUE_CONVERSATION,
     DEFAULT_MODEL,
+    DEFAULT_SESSION_KEY,
     DEFAULT_STRIP_EMOJI,
     DEFAULT_SYSTEM_PROMPT,
     DEFAULT_TIMEOUT,
@@ -175,6 +177,9 @@ class OpenClawConversationConfigFlow(
                         CONF_CONTINUE_CONVERSATION: user_input.get(
                             CONF_CONTINUE_CONVERSATION, DEFAULT_CONTINUE_CONVERSATION
                         ),
+                        CONF_SESSION_KEY: user_input.get(
+                            CONF_SESSION_KEY, DEFAULT_SESSION_KEY
+                        ),
                     },
                 )
 
@@ -201,6 +206,9 @@ class OpenClawConversationConfigFlow(
                     vol.Optional(
                         CONF_CONTINUE_CONVERSATION, default=DEFAULT_CONTINUE_CONVERSATION
                     ): bool,
+                    vol.Optional(
+                        CONF_SESSION_KEY, default=DEFAULT_SESSION_KEY
+                    ): str,
                 }
             ),
             errors=errors,
@@ -268,6 +276,15 @@ class OpenClawOptionsFlowHandler(config_entries.OptionsFlow):
                             CONF_CONTINUE_CONVERSATION, DEFAULT_CONTINUE_CONVERSATION
                         ),
                     ): bool,
+                    vol.Optional(
+                        CONF_SESSION_KEY,
+                        default=self.config_entry.options.get(
+                            CONF_SESSION_KEY,
+                            self.config_entry.data.get(
+                                CONF_SESSION_KEY, DEFAULT_SESSION_KEY
+                            ),
+                        ),
+                    ): str,
                 }
             ),
         )

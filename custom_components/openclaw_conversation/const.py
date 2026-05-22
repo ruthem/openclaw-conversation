@@ -10,12 +10,14 @@ CONF_SYSTEM_PROMPT = "system_prompt"
 CONF_STRIP_EMOJI = "strip_emoji"
 CONF_VERIFY_SSL = "verify_ssl"
 CONF_CONTINUE_CONVERSATION = "continue_conversation"
+CONF_SESSION_KEY = "session_key"
 
 DEFAULT_MODEL = "openclaw:main"
 DEFAULT_TIMEOUT = 0
 DEFAULT_STRIP_EMOJI = True
 DEFAULT_VERIFY_SSL = False
 DEFAULT_CONTINUE_CONVERSATION = True
+DEFAULT_SESSION_KEY = "agent:main:homeassistant"
 DEFAULT_BASE_URL = "http://127.0.0.1:18789"
 DEFAULT_SYSTEM_PROMPT = (
     "You are a voice assistant. Keep responses short and conversational "

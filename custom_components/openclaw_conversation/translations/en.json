@@ -11,12 +11,14 @@
           "model": "Model",
           "timeout": "Timeout (seconds, 0 = no limit)",
           "system_prompt": "System prompt",
-          "continue_conversation": "Continuous conversation"
+          "continue_conversation": "Continuous conversation",
+          "session_key": "Session Key"
         },
         "data_description": {
           "system_prompt": "Instructions sent before each conversation (e.g. keep responses short for voice)",
           "timeout": "Set to 0 to disable the response timeout (recommended for long-running requests)",
-          "continue_conversation": "Keep the microphone open for follow-up questions after a response"
+          "continue_conversation": "Keep the microphone open for follow-up questions after a response",
+          "session_key": "Stable key for persistent session context in OpenClaw (default: agent:main:homeassistant)"
         }
       }
     },
@@ -42,11 +44,13 @@
           "timeout": "Timeout (seconds, 0 = no limit)",
           "system_prompt": "System prompt",
           "strip_emoji": "Strip emojis from responses",
-          "continue_conversation": "Continuous conversation"
+          "continue_conversation": "Continuous conversation",
+          "session_key": "Session Key"
         },
         "data_description": {
           "timeout": "Set to 0 to disable the response timeout (recommended for long-running requests)",
-          "continue_conversation": "Keep the microphone open for follow-up questions after a response"
+          "continue_conversation": "Keep the microphone open for follow-up questions after a response",
+          "session_key": "Stable key for persistent session context in OpenClaw (default: agent:main:homeassistant)"
         }
       }
     }

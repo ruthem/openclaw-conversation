@@ -23,12 +23,14 @@ from .const import (
     CONF_BASE_URL,
     CONF_CONTINUE_CONVERSATION,
     CONF_MODEL,
+    CONF_SESSION_KEY,
     CONF_STRIP_EMOJI,
     CONF_SYSTEM_PROMPT,
     CONF_TIMEOUT,
     CONF_VERIFY_SSL,
     DEFAULT_CONTINUE_CONVERSATION,
     DEFAULT_MODEL,
+    DEFAULT_SESSION_KEY,
     DEFAULT_STRIP_EMOJI,
     DEFAULT_SYSTEM_PROMPT,
     DEFAULT_TIMEOUT,
@@ -37,7 +39,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-_EMOJI_PATTERN = re.compile("[\U00010000-\U0010ffff]", flags=re.UNICODE)
+_EMOJI_PATTERN = re.compile("[\U00010000-\U0010ffff\u2600-\u26ff]", flags=re.UNICODE)
 
 
 class OpenClawConversationAgent(conversation.AbstractConversationAgent):
@@ -62,6 +64,10 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
         self._continue_conversation = config.get(
             CONF_CONTINUE_CONVERSATION, DEFAULT_CONTINUE_CONVERSATION
         )
+        self._session_key = config.get(CONF_SESSION_KEY, DEFAULT_SESSION_KEY)
+
+        # Ensure a consistent persistent session for HA voice use.
+        self._initial_welcome_sent = False
 
     @property
     def attribution(self) -> dict[str, str]:
@@ -111,6 +117,13 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
 
         if self._strip_emoji:
             response_text = _EMOJI_PATTERN.sub("", response_text)
+
+        # Normalize temperature notation and strip characters for better TTS
+        response_text = response_text.replace("°F", "°Fahrenheit")
+        response_text = response_text.replace(":", "")
+        response_text = response_text.replace("*", "")
+        response_text = response_text.replace("#", "")
+        response_text = response_text.replace("OFF", "off")
 
         response = intent.IntentResponse(language=user_input.language)
         response.async_set_speech(response_text)
@@ -163,22 +176,38 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
         self, text: str, conversation_id: str, principal: dict[str, str]
     ) -> tuple[str, bool]:
         """Call OpenClaw chat completions API with streaming."""
+        # OpenClaw OpenAI-compatible endpoint is stateless by default.
+        # Use a stable `user` and/or `x-openclaw-session-key` to keep session context.
         headers = {
             "Authorization": f"Bearer {self._api_key}",
             "Content-Type": "application/json",
+            "x-openclaw-session-key": self._session_key,
+            "x-openclaw-message-channel": "homeassistant",
         }
 
         api_messages = []
+        # Global system prompt always at the top (if configured).
         if self._system_prompt:
             api_messages.append(
                 {"role": "system", "content": self._system_prompt}
             )
+
+        # One-time welcome/context priming on first HA startup.
+        if not self._initial_welcome_sent:
+            welcome_text = (
+                "You should read the following files in your workspace folder"
+                "for context and answers to who you are: SOUL.md, USER.md, AGENT.md and MEMORY.md."
+            )
+            text = f"{welcome_text} {text}"
+            self._initial_welcome_sent = True
+
         api_messages.append({"role": "user", "content": text})
 
         payload = {
             "model": self._model,
             "messages": api_messages,
             "stream": True,
+            "user": "homeassistant",
             "language": self.hass.config.language,
             "local_date": dt_util.now().date().isoformat(),
             "conversation_id": conversation_id,
