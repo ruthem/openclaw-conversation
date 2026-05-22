@@ -17,11 +17,13 @@ from .const import (
     CONF_STRIP_EMOJI,
     CONF_SYSTEM_PROMPT,
     CONF_TIMEOUT,
+    CONF_VERIFY_SSL,
     DEFAULT_BASE_URL,
     DEFAULT_MODEL,
     DEFAULT_STRIP_EMOJI,
     DEFAULT_SYSTEM_PROMPT,
     DEFAULT_TIMEOUT,
+    DEFAULT_VERIFY_SSL,
     DOMAIN,
 )
 
@@ -93,6 +95,7 @@ class OpenClawConversationConfigFlow(
                         json=payload,
                         headers=headers,
                         timeout=aiohttp.ClientTimeout(total=30),
+                        verify_ssl=False
                     ) as resp:
                         body = ""
                         if resp.status != 200:
@@ -243,6 +246,12 @@ class OpenClawOptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_STRIP_EMOJI,
                         default=self.config_entry.options.get(
                             CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI
+                        ),
+                    ): bool,
+                    vol.Optional(
+                        CONF_VERIFY_SSL,
+                        default=self.config_entry.options.get(
+                            CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL
                         ),
                     ): bool,
                 }

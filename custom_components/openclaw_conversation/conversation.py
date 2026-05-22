@@ -25,10 +25,12 @@ from .const import (
     CONF_STRIP_EMOJI,
     CONF_SYSTEM_PROMPT,
     CONF_TIMEOUT,
+    CONF_VERIFY_SSL,
     DEFAULT_MODEL,
     DEFAULT_STRIP_EMOJI,
     DEFAULT_SYSTEM_PROMPT,
     DEFAULT_TIMEOUT,
+    DEFAULT_VERIFY_SSL,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,6 +56,7 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
             CONF_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT
         )
         self._strip_emoji = entry.options.get(CONF_STRIP_EMOJI, DEFAULT_STRIP_EMOJI)
+        self._verify_ssl = entry.options.get(CONF_VERIFY_SSL, DEFAULT_VERIFY_SSL)
 
     @property
     def attribution(self) -> dict[str, str]:
@@ -178,6 +181,7 @@ class OpenClawConversationAgent(conversation.AbstractConversationAgent):
                 f"{self._base_url}/v1/chat/completions",
                 json=payload,
                 headers=headers,
+                verify_ssl=self._verify_ssl
             ) as resp:
                 if resp.status != 200:
                     body = await resp.text()
